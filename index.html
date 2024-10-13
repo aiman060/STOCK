@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Visualization</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f9;
+        }
+        .container {
+            padding: 20px;
+            max-width: 100%;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+       
+    /* Other styles remain unchanged */
+
+    .chart-options {
+        text-align: center;
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: row; /* Changed to row */
+        justify-content: center; /* Center items */
+        align-items: center; /* Center vertically */
+    }
+    select, button {
+        padding: 10px;
+        margin: 5px; /* Maintain margin for spacing */
+        font-size: 16px;
+        width: auto; /* Set width to auto for flexibility */
+        max-width: 200px; /* Adjust max-width if needed */
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    button {
+        background-color: #111111;
+        color: white;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #000000;
+    }
+
+
+        .info-message {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            .chart-container {
+                height: 250px;
+            }
+            select, button {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Stock Visualization</h1>
+        
+        <div class="card">
+            <div class="chart-options">
+                <select id="companySelect">
+                    <option value="OGDC">OGDC</option>
+                    <option value="PPL">PPL</option>
+                    <option value="KEL">K-Electric Limited</option>
+                    <option value="FFC">Fauji Fertilizer Company</option>
+                    <option value="LUCK">Lucky Cement</option>
+                </select>
+            
+                <select id="chartTypeSelect">
+                    <option value="candlestick">Candlestick Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="bar">Bar Chart</option>
+                    <option value="area">Area Chart</option>
+                </select>
+            
+                <select id="indicatorSelect">
+                    <option value="none">No Indicator</option>
+                    <option value="SMA">Simple Moving Average (SMA)</option>
+                    <option value="EMA">Exponential Moving Average (EMA)</option>
+                    <option value="Bollinger">Bollinger Bands</option>
+                    <option value="Keltner">Keltner Channels</option>
+                    <option value="Envelopes">Envelopes</option>
+                    <option value="ATR">Average True Range (ATR)</option>
+                    <option value="PriceChannels">Price Channels</option>
+                </select>
+            
+                <button onclick="loadChart()">Update Chart</button>
+            </div>
+            
+                
+                <div class="info-message">
+                    For further features, visualizations, and insights, visit our <a href="YOUR_WEBSITE_LINK_HERE" target="_blank">website</a>.
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <div id="chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const companiesData = {
+            "OGDC": generateSampleData(),
+            "PPL": generateSampleData(),
+            "KEL": generateSampleData(),
+            "FFC": generateSampleData(),
+            "LUCK": generateSampleData(),
+        };
+
+        function loadChart() {
+            const company = document.getElementById("companySelect").value;
+            const chartType = document.getElementById("chartTypeSelect").value;
+            const indicator = document.getElementById("indicatorSelect").value;
+
+            const data = companiesData[company];
+
+            if (chartType === 'candlestick') {
+                const fig = createCandlestickChart(data, company);
+                Plotly.newPlot('chart', fig.data, fig.layout);
+            } else if (chartType === 'line') {
+                const fig = createLineChart(data);
+                Plotly.newPlot('chart', fig.data, fig.layout);
+            } else if (chartType === 'bar') {
+                const fig = createBarChart(data);
+                Plotly.newPlot('chart', fig.data, fig.layout);
+            } else if (chartType === 'area') {
+                const fig = createAreaChart(data);
+                Plotly.newPlot('chart', fig.data, fig.layout);
+            }
+
+            // Add selected indicator
+            if (indicator !== "none") {
+                addIndicator(indicator, data);
+            }
+        }
+
+        function createCandlestickChart(data, company) {
+            const fig = {
+                data: [{
+                    x: data.map(item => item.date),
+                    open: data.map(item => item.open_price),
+                    high: data.map(item => item.high_price),
+                    low: data.map(item => item.low_price),
+                    close: data.map(item => item.close_price),
+                    type: 'candlestick',
+                    name: company
+                }],
+                layout: {
+                    title: `${company} Candlestick Chart`,
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Price' },
+                }
+            };
+            return fig;
+        }
+
+        function createLineChart(data) {
+            const fig = {
+                data: [{
+                    x: data.map(item => item.date),
+                    y: data.map(item => item.close_price),
+                    mode: 'lines',
+                    name: 'Close Price'
+                }],
+                layout: {
+                    title: 'Line Chart',
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Price' },
+                }
+            };
+            return fig;
+        }
+
+        function createBarChart(data) {
+            const fig = {
+                data: [{
+                    x: data.map(item => item.date),
+                    y: data.map(item => item.close_price),
+                    type: 'bar',
+                    name: 'Close Price'
+                }],
+                layout: {
+                    title: 'Bar Chart',
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Price' },
+                }
+            };
+            return fig;
+        }
+
+        function createAreaChart(data) {
+            const fig = {
+                data: [{
+                    x: data.map(item => item.date),
+                    y: data.map(item => item.close_price),
+                    fill: 'tozeroy',
+                    type: 'scatter',
+                    name: 'Close Price'
+                }],
+                layout: {
+                    title: 'Area Chart',
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Price' },
+                }
+            };
+            return fig;
+        }
+
+        function addIndicator(indicator, data) {
+            let trace;
+            if (indicator === "SMA") {
+                trace = {
+                    x: data.map(item => item.date),
+                    y: calculateSMA(data),
+                    mode: 'lines',
+                    name: 'SMA',
+                    line: { color: 'orange' }
+                };
+            } else if (indicator === "EMA") {
+                trace = {
+                    x: data.map(item => item.date),
+                    y: calculateEMA(data),
+                    mode: 'lines',
+                    name: 'EMA',
+                    line: { color: 'purple' }
+                };
+            } else if (indicator === "Bollinger") {
+                const { sma, upperBand, lowerBand } = calculateBollingerBands(data);
+                const upperTrace = {
+                    x: data.map(item => item.date),
+                    y: upperBand,
+                    mode: 'lines',
+                    name: 'Upper Bollinger Band',
+                    line: { color: 'green' }
+                };
+                const lowerTrace = {
+                    x: data.map(item => item.date),
+                    y: lowerBand,
+                    mode: 'lines',
+                    name: 'Lower Bollinger Band',
+                    line: { color: 'red' }
+                };
+                Plotly.addTraces('chart', [upperTrace, lowerTrace]);
+            }
+            // Add trace to the chart
+            if (trace) {
+                Plotly.addTraces('chart', [trace]);
+            }
+        }
+
+        // Example calculation functions (replace with actual logic)
+        function calculateSMA(data, window = 20) {
+            const smaData = [];
+            for (let i = window - 1; i < data.length; i++) {
+                const avg = data.slice(i - window + 1, i + 1).reduce((acc, val) => acc + val.close_price, 0) / window;
+                smaData.push(avg);
+            }
+            return Array(window - 1).fill(null).concat(smaData);
+        }
+
+        function calculateEMA(data, window = 20) {
+            const emaData = [];
+            let multiplier = 2 / (window + 1);
+            let prevEma = null;
+            for (let i = 0; i < data.length; i++) {
+                if (i < window - 1) {
+                    emaData.push(null);
+                } else if (i === window - 1) {
+                    const avg = data.slice(0, window).reduce((acc, val) => acc + val.close_price, 0) / window;
+                    emaData.push(avg);
+                    prevEma = avg;
+                } else {
+                    const currentEma = (data[i].close_price - prevEma) * multiplier + prevEma;
+                    emaData.push(currentEma);
+                    prevEma = currentEma;
+                }
+            }
+            return emaData;
+        }
+
+        function calculateBollingerBands(data, window = 20, numStdDev = 2) {
+            const sma = calculateSMA(data, window);
+            const upperBand = [];
+            const lowerBand = [];
+            for (let i = window - 1; i < data.length; i++) {
+                const stdDev = Math.sqrt(data.slice(i - window + 1, i + 1).reduce((acc, val) => acc + Math.pow(val.close_price - sma[i], 2), 0) / window);
+                upperBand.push(sma[i] + (stdDev * numStdDev));
+                lowerBand.push(sma[i] - (stdDev * numStdDev));
+            }
+            return { sma, upperBand, lowerBand };
+        }
+
+        function generateSampleData() {
+            const sampleData = [];
+            const date = new Date();
+            for (let i = 0; i < 100; i++) {
+                sampleData.push({
+                    date: new Date(date.getTime() - i * 86400000).toISOString().split('T')[0],
+                    open_price: Math.random() * 100,
+                    close_price: Math.random() * 100,
+                    high_price: Math.random() * 100,
+                    low_price: Math.random() * 100,
+                });
+            }
+            return sampleData.reverse(); // Reverse to have dates in ascending order
+        }
+
+        // Load initial chart
+        loadChart();
+    </script>
+
+</body>
+</html>
